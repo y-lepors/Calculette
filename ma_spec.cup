@@ -1,0 +1,80 @@
+// Specification JCup
+import java.io.*; 
+import java_cup.runtime.*;
+import java.util.*;
+
+parser code {:
+    public static void main(String args[]) throws Exception {
+        new parser(new Yylex(new InputStreamReader(System.in))).parse();
+    }
+
+:}
+
+action code {:
+  int total=0;
+
+  Map<String, Integer> mapInt = new HashMap<String, Integer>();
+  Map<String, String> mapString = new HashMap<String, String>();
+
+  // Méthode afficher valeur de map
+    public void afficherMap() {
+        System.out.println("Variable chaines :");
+        for (Map.Entry<String, String> entry : mapString.entrySet()) {
+        System.out.println(entry.getKey() + " = " + entry.getValue());
+        }
+        System.out.println("Variable entières :");
+        for (Map.Entry<String, Integer> entry  : mapInt.entrySet()) {
+        System.out.println(entry.getKey() + " = " + entry.getValue());
+        }
+       
+    }
+
+    boolean erreur = false;
+:}
+
+terminal MULT, PLUS, PO, PF, EGAL, PRINT, EOL;
+terminal Integer ENTIER;
+terminal String CHAINE;
+terminal String VARIABLECHIFFRE;
+terminal String VARIABLECHAINE;
+terminal String RIEN;
+
+nonterminal Integer expr;
+nonterminal String exprStr;
+nonterminal prog;
+
+
+precedence left PLUS;
+precedence left MULT;
+precedence left PO, PF;
+
+
+prog ::= expr:e EOL {: if(!erreur) {System.out.println("- : entier " +e);} else {erreur = false;} :}  prog
+        | exprStr:e EOL {: if(!erreur) {System.out.println("- : chaine " +e);} else {erreur = false;} :}  prog
+        | VARIABLECHIFFRE:v EGAL expr:e EOL {: if(!erreur) {mapInt.put(v, new Integer(e)); System.out.println(v + " : entier " + e); } else { erreur = false; } :}  prog
+        | VARIABLECHAINE:v EGAL exprStr:e EOL {: if(!erreur){ mapString.put(v, e); System.out.println(v + " : chaine " + e); } else { erreur = false;} :}  prog
+        | VARIABLECHIFFRE:v EGAL exprStr:e EOL {: if(!erreur){ System.out.println("erreur: type incorrect sur affectation"); erreur = true; } else {erreur = false;} :}  prog
+        | VARIABLECHAINE:v EGAL expr:e EOL {: if(!erreur) {System.out.println("erreur: type incorrect sur affectation"); erreur = true;} else {erreur = false;} :}  prog
+        | PRINT EOL {: afficherMap(); :} prog
+        | EOL prog 
+        | expr RIEN {: System.out.println("erreur: syntaxe incorrecte"); erreur = true; :} prog
+        | exprStr RIEN{: System.out.println("erreur: syntaxe incorrecte"); erreur = true; :} prog
+        | RIEN {: System.out.println("erreur: syntaxe incorrecte"); erreur = true; :} prog
+        |  {: System.out.println("Au revoir"); :}
+        ;
+
+expr ::= expr:e1 PLUS expr:e2 {: if(!erreur){ RESULT = e1 + e2;} :}
+    | expr:e1 MULT expr:e2 {:if(!erreur){ RESULT = e1 * e2; } :}
+    | PO expr:e PF {: RESULT = e; :}
+    | ENTIER:n {: RESULT = n; :}
+    | VARIABLECHIFFRE:v {: if(mapInt.containsKey(v)){ RESULT = mapInt.get(v); } else { System.out.println("erreur: identificateur inconnu : "+v); erreur = true; } :}
+    | expr PLUS exprStr {: System.out.println("erreur: type incorrect sur opérateur +"); erreur = true; :};
+
+exprStr ::= exprStr:e1 PLUS exprStr:e2 {:if(!erreur){ RESULT = e1.substring(0, e1.length() -1) + e2.substring(1); }  :}
+    | exprStr:e1 MULT expr:e2 {: if(!erreur){ RESULT = "\""+ e1.substring(1, e1.length() -1).repeat(e2) + "\""; } :}
+    | expr:e2 MULT exprStr:e1 {: if(!erreur){ RESULT = "\""+ e1.substring(1, e1.length() -1).repeat(e2) + "\""; } :}
+    | PO exprStr:e PF {: RESULT = e; :}
+    | CHAINE:n {: RESULT = n; :}
+    | VARIABLECHAINE:v {: if(mapString.containsKey(v)){ RESULT = mapString.get(v);} else { System.out.println("erreur: identificateur inconnu : "+v); erreur = true; } :}
+    | exprStr PLUS expr {: System.out.println("erreur: type incorrect sur opérateur +"); erreur = true; :}
+    | exprStr MULT exprStr {: System.out.println("erreur: type incorrect sur opérateur *"); erreur = true; :};

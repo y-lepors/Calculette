@@ -1,0 +1,27 @@
+README
+
+    Projet de compilation 
+    Calculateur entiers / chaines
+
+    Le programme permet de réaliser des calculs d'entier, de reconnaître des chaînes de caractères entre guillemet et d'assigner des variables d'entier ou de chaîne de caractère (Représenter par un $ avant le nom).
+    Le programme traite l'ensemble des cas prévu dans le sujet.
+    Pour traiter les cas d'erreur, j'ai ajouté un cas nommé RIEN pour les expressions non reconnues.
+    Ce cas nommé RIEN fait alors partie de la grammaire.
+
+    J'ai fourni un fichier d'entrée avec et le fichier comp.sh que j'ai réaliser afin d'exécuter mon programme et gagner du temps.
+
+Limite du programme :
+
+    - J'ai maximisé le plus possible le traitement des cas d'erreur, cependant le programme n'accepte pas certaines suites de caractère sûr une même ligne, par exemple ("abc abc abc") car il n'est pas capable de sauter la ligne et de passer à la suivante dans ce cas.
+
+    - Pour que le programme n'ai pas d'erreur une ligne vide est néccéssaire à la fin du fichier d'entrée.
+
+
+Grammaire utilisée (Sans les cas erreur) :
+
+    prog -> expr EOL prog | exprStr EOL prog | VARIABLECHIFFRE EGAL EOL prog | VARIABLECHAINE EGAL EOL prog | EOL prog | PRINT EOL prog | ε
+
+    expr -> expr PLUS expr | expr MULT expr | expr PLUS exprStr | PO expr PF | ENTIER | VARIABLECHIFFRE
+
+    exprStr -> exprStr PLUS exprStr | exprStr MULT expr | expr PLUS exprStr | PO expr PF | exprStr PLUS expr | exprStr MULT exprStr | CHAINE | VARIABLECHAINE
+
